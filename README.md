@@ -10,9 +10,13 @@ Instructions for running the app:
 3. Set up local database
 
 mysql ->
+
 CREATE USER '<admin_name>'@'localhost' IDENTIFIED BY '<password>';
+
 CREATE DATABASE <database_name>;
+
 GRANT ALL PRIVILEGES ON <database_name> . * TO '<admin_name>'@'localhost';
+
 FLUSH PRIVILEGES;
 
 4. Update the "instance/config.py" file
@@ -20,9 +24,15 @@ FLUSH PRIVILEGES;
 5. Run the following commands:
 
 $cd dsclub
+
 $export FLASK_CONFIG=development
+
 $export FLASK_APP=run.py
+
 $flask db init
+
 $flask db migrate
+
 $flask db upgrade
+
 $flask run
