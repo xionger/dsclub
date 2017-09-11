@@ -1,10 +1,11 @@
+"""
 from flask import flash, redirect, render_template, url_for
 from flask_login import login_required, login_user, logout_user
 
 from . import auth
 from forms import LoginForm, RegistrationForm
 from .. import db
-from ..models import User
+from app.user.models import User
 
 @auth.route('/register', methods=['GET', 'POST'])
 def register():
@@ -14,19 +15,23 @@ def register():
 
     form = RegistrationForm()
     if form.validate_on_submit():
-        user = User(email=form.email.data,
-                            username=form.username.data,
-                            firstname=form.firstname.data,
-                            lastname=form.lastname.data,
-                            password=form.password.data)
+        """"""
+        user = User(email=form.email.data.lower(),
+                    username=form.username.data.lower(),
+                    firstname=form.firstname.data,
+                    lastname=form.lastname.data,
+                    password=form.password.data)
 
         # add the user to the database
         db.session.add(user)
         db.session.commit()
+        """"""
+        user = form.save()
+
         flash('You have successfully registered! Please login now.')
 
         # redirect to the login page
-        return redirect(url_for('auth.login'))
+        return redirect(url_for('home.dashboard'))
 
     # load registration template
     return render_template('auth/register.html', form=form, title='Register')
@@ -47,7 +52,7 @@ def login():
             # log user in
             login_user(user)
 
-            # redirect to the profile page after login
+            # redirect to the dashboard page after login
             return redirect(url_for('home.dashboard'))
 
         # when login details are incorrect
@@ -69,3 +74,11 @@ def logout():
 
     # redirect to the login page
     return redirect(url_for('auth.login'))
+
+@auth.route('/logout/<user_id>')
+@login_required
+def update_profile(user_id):
+    
+    return render_template('auth/update_profile.html')
+
+"""

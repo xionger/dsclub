@@ -39,6 +39,20 @@
           {% endif %}
           <li><a href="{{ url_for('resource.show_resources') }}">Resources</a></li>
           <li class="dropdown">
+            <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Forums <span class="caret"></span></a>
+            <ul class="dropdown-menu">
+              <li><a href="{{ url_for('forum.forum_career') }}">Careers</a></li>
+              <li><a href="{{ url_for('forum.forum_data_analysis') }}">Data Analysis</a></li>
+              <li><a href="{{ url_for('forum.forum_data_mining') }}">Data Mining</a></li>
+              <li><a href="{{ url_for('forum.forum_data_visualization') }}">Data Visualization</a></li>
+              <li><a href="{{ url_for('forum.forum_machine_learning') }}">Machine Learning</a></li>
+              <li><a href="{{ url_for('forum.forum_probability_statistics') }}">Probability and Statictics</a></li>
+              <li><a href="{{ url_for('forum.forum_programming') }}">Programming</a></li>
+              <li><a href="{{ url_for('forum.forum_resource') }}">Resources</a></li>
+            </ul>
+          </li>
+          <li><a href="#">Blank</a></li>
+          <li class="dropdown">
             <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Projects <span class="caret"></span></a>
             <ul class="dropdown-menu">
               <li><a href="{{ url_for('project.create_project') }}">Create a project</a></li>

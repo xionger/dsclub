@@ -1,6 +1,7 @@
 {% extends "base.html" %}
-{% block title %}Dashboard{% endblock %}
+{% block title %}Profile{% endblock %}
 {% block body %}
+<!--
 <div class="intro-header">
     <div class="container">
         <div class="row">
@@ -10,6 +11,57 @@
                     <h3>This is your kingdom!</h3>
                     <hr class="intro-divider">
                     </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+-->
+<div class="container">
+    <div class="span3 well">
+        <center>
+        <a href="#aboutModal" data-toggle="modal" data-target="#myModal"><img src="https://encrypted-tbn2.gstatic.com/images?q=tbn:ANd9GcRbezqZpEuwGSvitKy3wrwnth5kysKdRqBW54cAszm_wiutku3R" name="aboutme" width="140" height="140" class="img-circle"></a>
+        <h3>{{ current_user.username }}</h3>
+        <em>click my face for more</em>
+        </center>
+    </div>
+    <!-- Modal -->
+    <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true"></button>
+                    <h4 class="modal-title" id="myModalLabel">More About {{ current_user.username }}</h4>
+                    </div>
+                <div class="modal-body">
+                    <center>
+                    <img src="https://encrypted-tbn2.gstatic.com/images?q=tbn:ANd9GcRbezqZpEuwGSvitKy3wrwnth5kysKdRqBW54cAszm_wiutku3R" name="aboutme" width="140" height="140" border="0" class="img-circle"></a>
+                    <h3 class="media-heading">{{ current_user.username }} {{ current_user.username }} <small>Score: {{ current_user.score }}</small></h3>
+                    <span><strong>Tags: </strong></span>
+                        <span class="label label-warning">HTML5/CSS</span>
+                        <span class="label label-info">Adobe CS 5.5</span>
+                        <span class="label label-info">Microsoft Office</span>
+                        <span class="label label-success">Windows XP, Vista, 7</span>
+                    </center>
+                    <hr>
+                    <center>
+                    <p class="text-left"><strong>Bio: </strong><br>
+                        Lorem ipsum dolor sit amet, consectetur adipiscing elit. Ut sem dui, tempor sit amet commodo a, vulputate vel tellus.</p>
+                    <br>
+                    </center>
+                </div>
+                <div class="modal-footer">
+                    <center>
+                    <div class="row">
+                    {% if current_user.is_authenticated %}
+                        <a href="http://www.google.com"><button type="button" class="btn btn-default" >Update my profile</button></a>
+                        <button type="button" class="btn btn-default" data-dismiss="modal">I'm satisfied with my profile</button>
+                    {% else %}
+                        <a href="http://www.google.com"><button type="button" class="btn btn-default" >Send a message to {{ current_user.username }}</button></a>
+                        <button type="button" class="btn btn-default" data-dismiss="modal">I've heard enough about {{ current_user.username }}</button>
+                    {% endif %}
+                    </div>
+                    </center>
                 </div>
             </div>
         </div>

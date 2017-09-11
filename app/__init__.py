@@ -43,10 +43,13 @@ def create_app(config_name):
 	from .home import home as home_blueprint
 	app.register_blueprint(home_blueprint)
 
+	from .message import message as message_blueprint
+	app.register_blueprint(message_blueprint)
+
 	from .project import project as project_blueprint
 	app.register_blueprint(project_blueprint)
 
-	from .resource import resource as resource_blueprint
-	app.register_blueprint(resource_blueprint)
+	from .forum import forum as forum_blueprint
+	app.register_blueprint(forum_blueprint)
 
 	return app

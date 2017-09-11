@@ -8,6 +8,16 @@ body, h1, h2, h3 {
     font-weight: 700;
 }
 
+/*
+a, .navbar-default .navbar-brand, .navbar-default .navbar-nav>li>a {
+  color: #aec251;
+}
+
+a:hover, .navbar-default .navbar-brand:hover, .navbar-default .navbar-nav>li>a:hover {
+  color: #687430;
+}
+*/
+
 footer {
     padding: 50px 0;
     background-color: #f8f8f8;
@@ -17,6 +27,29 @@ p.copyright {
     margin: 15px 0 0;
 }
 
+/*
+.alert-info {
+    width: 50%;
+    margin: auto;
+    color: #687430;
+    background-color: #e6ecca;
+    border-color: #aec251;
+}
+
+.btn-default {
+    border-color: #aec251;
+    color: #aec251;
+}
+
+.btn-default:hover {
+    background-color: #aec251;
+}
+
+.content-section {
+    padding: 50px 0;
+    border-top: 1px solid #e7e7e7;
+}
+*/
 .center {
     margin: auto;
     width: 50%;
