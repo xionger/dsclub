@@ -1,11 +1,10 @@
-"""
 from flask import flash, redirect, render_template, url_for
 from flask_login import login_required, login_user, logout_user
 
 from . import auth
-from forms import LoginForm, RegistrationForm
+from .forms import LoginForm, RegistrationForm
 from .. import db
-from app.user.models import User
+from ..models import User
 
 @auth.route('/register', methods=['GET', 'POST'])
 def register():
@@ -81,4 +80,3 @@ def update_profile(user_id):
     
     return render_template('auth/update_profile.html')
 
-"""

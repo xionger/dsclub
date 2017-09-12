@@ -1,9 +1,8 @@
-"""
 from flask_wtf import FlaskForm
-from wtforms import PasswordField, StringField, SubmitField, ValidationError
+from wtforms import PasswordField, StringField, SubmitField, ValidationError, BooleanField, HiddenField
 from wtforms.validators import DataRequired, InputRequired, Email, EqualTo, regexp, ValidationError
 
-from app.home.models import User
+from app.models import User
 
 USERNAME_RE = r'^[\w.+]+$'
 is_valid_username = regexp(USERNAME_RE, message="You can only use letters or numbers.")
@@ -59,7 +58,7 @@ class LoginForm(FlaskForm):
     #email = StringField('Email', validators=[DataRequired(), Email()])
     password = PasswordField('Password', validators=[DataRequired("Please enter your password.")])
 
-    remember_me = BooleanField(_('Remember me'), default=False)
+    remember_me = BooleanField('Remember me', default=False)
 
     submit = SubmitField('Login')
 
@@ -67,7 +66,7 @@ class ForgotPasswordForm(FlaskForm):
     email = StringField('Email address', 
         validators=[DataRequired("A valid email address is required."), Email()]) 
 
-    submit = SubmitField(_("Request Password"))
+    submit = SubmitField("Request Password")
 
 class ResetPasswordForm(FlaskForm):
     token = HiddenField('Token')
@@ -85,6 +84,4 @@ class ResetPasswordForm(FlaskForm):
     def validate_email(self, field):
         email = User.query.filter_by(email=field.data.lower()).first()
         if not email:
-            raise ValidationError(_("Wrong email address."))
-
-"""
+            raise ValidationError("Wrong email address.")

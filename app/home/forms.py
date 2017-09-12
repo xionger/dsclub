@@ -4,9 +4,8 @@ from wtforms import StringField, PasswordField, TextAreaField, SelectField, Vali
 from wtforms.validators import Length, DataRequired, InputRequired, Email, EqualTo, Optional, URL
 
 from app import db
-#from .models import User
+from app.models import User
 
-"""
 class ChangePasswordForm(FlaskForm):
 	old_password = PasswordField('Password', 
 		validators=[DataRequired(message="Please enter your password.")])
@@ -59,8 +58,6 @@ class ChangeUserDetailsForm(FlaskForm):
 	kaggle = StringField('Kaggle', validators=[Optional()])
 	linkedin = StringField('LinkedIn', validators=[Optional(), URL()])
 
-	avatar = StringField('Avatar', validators=[Optional(), URL()])
+	#avatar = StringField('Avatar', validators=[Optional(), URL()])
 
 	submit = SubmitField('Save')
-
-"""
