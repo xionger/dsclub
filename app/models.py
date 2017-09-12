@@ -12,10 +12,12 @@ from app import db, login_manager
 
 from app.utils.database import CRUDMixin, make_comparable
 
+"""
 groups_users = db.Table(
 	'groups_users',
 	db.Column('user_id', db.Integer, db.ForeignKey('users.id'), nullable=False), 
 	db.Column('group_id', db.Integer, db.ForeignKey('groups.id'), nullable=False))
+"""
 
 moderators = db.Table(
 	'moderators', 
@@ -29,11 +31,13 @@ topictracker = db.Table(
 	db.Column('topic_id', db.Integer(), 
 		db.ForeignKey('topics.id', use_alter=True, name="ds_tracker_topic_id"), nullable=False))
 
+"""
 forumgroups = db.Table(
 	'forumgroups', 
 	db.Column('group_id', db.Integer(), db.ForeignKey('groups.id'), nullable=False), 
 	db.Column('forum_id', db.Integer(), 
 		db.ForeignKey('forums.id', use_alter=True, name="ds_forum_id"), nullable=False))
+"""
 
 creators = db.Table(
 	'creators', 
@@ -53,11 +57,13 @@ brainstormtracker = db.Table(
 	db.Column('brainstorm_id', db.Integer(), 
 		db.ForeignKey('brainstorms.id', use_alter=True, name="ds_tracker_brainstorm_id"), nullable=False))
 
+"""
 projectgroups = db.Table(
 	'projectgroups', 
 	db.Column('group_id', db.Integer(), db.ForeignKey('groups.id'), nullable=False), 
 	db.Column('project_id', db.Integer(), 
 		db.ForeignKey('prejects.id', use_alter=True, name="ds_project_id"), nullable=False))
+"""
 
 class User(db.Model, UserMixin, CRUDMixin):
 
@@ -90,8 +96,13 @@ class User(db.Model, UserMixin, CRUDMixin):
 	login_attempts = db.Column(db.Integer, default=0, nullable=False)
 	activated = db.Column(db.Boolean, default=False, nullable=False)
 
-	#is_member = db.Column(db.Boolean, default=False)
-	#is_admin = db.Column(db.Boolean, default=False)
+	is_banned = db.Column(db.Boolean, default=False)
+	is_member = db.Column(db.Boolean, default=True)
+	is_fellow = db.Column(db.Boolean, default=False)
+	is_admin = db.Column(db.Boolean, default=False)
+	super_admin = db.Column(db.Boolean, default=False)
+	
+
 	#role_id = db.Column(db.Integer, db.ForeignKey('roles.id'))
 
 	posts = db.relationship('Post', backref='user', lazy='dynamic')
@@ -102,6 +113,7 @@ class User(db.Model, UserMixin, CRUDMixin):
 	brainstorms = db.relationship('Brainstorm', backref='user', lazy='dynamic')
 	disc_count = db.Column(db.Integer, default=0)
 
+	"""
 	primary_group_id = db.Column(db.Integer, db.ForeignKey('groups.id'), nullable=False)
 
 	primary_group = db.relationship('Group', 
@@ -110,7 +122,7 @@ class User(db.Model, UserMixin, CRUDMixin):
 	secondary_groups = db.relationship('Group', 
 		secondary=groups_users, primaryjoin=(groups_users.c.user_id == id), 
 		backref=db.backref('users', lazy='dynamic'), lazy='dynamic')
-
+	"""
 	tracked_topics = db.relationship("Topic", 
 		secondary=topictracker, primaryjoin=(topictracker.c.user_id == id), 
 		backref=db.backref("topicstracked", lazy="dynamic"), lazy="dynamic")
@@ -175,6 +187,7 @@ class User(db.Model, UserMixin, CRUDMixin):
 		
 		return "<{} {}>".format(self.__class__.__name__, self.username)
 
+"""
 @make_comparable
 class Group(db.Model, CRUDMixin):
 	__tablename__ = "groups"
@@ -217,6 +230,7 @@ class Group(db.Model, CRUDMixin):
 	@classmethod
 	def selectable_groups_choices(cls):
 		return Group.query.order_by(Group.name.asc()).with_entities(Group.id, Group.name).all()
+"""
 
 @make_comparable
 class Forum(db.Model, CRUDMixin):
@@ -253,10 +267,11 @@ class Forum(db.Model, CRUDMixin):
 		secondary=moderators, 
 		primaryjoin=(moderators.c.forum_id == id),
 		backref=db.backref("forummoderator", lazy="dynamic"), lazy="joined")
-
+	"""
 	groups = db.relationship(
 		"Group", secondary=forumgroups, 
 		primaryjoin=(forumgroups.c.forum_id == id), backref="forumgroups", lazy="joined")
+	"""
 
 	"""
 	@property
@@ -406,9 +421,11 @@ class Project(db.Model, CRUDMixin):
 		primaryjoin=(participants.c.project_id == id),
 		backref=db.backref("projectprticipant", lazy="dynamic"), lazy="joined")
 
+	"""
 	groups = db.relationship(
 		"Group", secondary=projectgroups,
 		primaryjoin=(projectgroups.c.project_id == id), backref="projectgroups", lazy="joined")
+	"""
 
 	#creator_id = db.Column(db.Integer, db.ForeignKey('users.id'))
 	#paticipants = db.relationship('ProjectParticipant', backref='project', lazy='dynamic')
