@@ -1,4 +1,5 @@
 from flask import Flask
+#from flask_apscheduler import APScheduler
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
 from flask_migrate import Migrate
@@ -21,7 +22,13 @@ def create_app(config_name):
 
 	Bootstrap(app)
 
+	#db.app = app
+
 	db.init_app(app)
+
+	#scheduler = APScheduler()
+	#scheduler.init_app(app)
+	#scheduler.start()
 
 	login_manager.init_app(app)
 	login_manager.login_message = "You must login to access the pages."

@@ -33,3 +33,7 @@ def slugify(text, delim=u'-'):
 def register_view(ds_app, routes, view_func, *args, **kwargs):
     for route in routes:
         ds_app.add_url_rule(route, view_func=view_func, *args, **kwargs)
+
+def redirect_or_next(endpoint, **kwargs):
+
+    return redirect(request.args.get('next') or endpoint, **kwargs)

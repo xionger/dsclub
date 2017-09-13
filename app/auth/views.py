@@ -1,4 +1,6 @@
-from flask import flash, redirect, render_template, url_for
+from flask import flash, redirect, render_template, url_for, request
+from flask import current_app as app
+from flask.views import MethodView
 from flask_login import login_required, login_user, logout_user
 
 from . import auth
@@ -6,6 +8,71 @@ from .forms import LoginForm, RegistrationForm
 from .. import db
 from ..models import User
 
+from app.utils.helper import redirect_or_next, register_view
+from app.utils.exceptions import AuthenticationError
+
+class Register(MethodView):
+
+    def form(self):
+        form = RegistrationForm()
+        form.process(request.form)  # needed because a default is overriden
+        return form
+
+    def get(self):
+        return render_template("auth/register.html", form=self.form(), title='Register')
+
+    def post(self):
+        form = self.form()
+
+        if form.validate_on_submit():
+            user = form.save()
+
+            # redirect to the login page
+            return redirect(url_for('home.index'))
+
+        return render_template("auth/register.html", form=form, title='Register')
+
+class Login(MethodView):
+
+    def form(self):
+        form = LoginForm()
+        return form
+
+    def get(self):
+        return render_template("auth/login.html", form=self.form())
+
+    def post(self):
+        form = self.form()
+        if form.validate_on_submit():
+
+            try:
+                user = User.authenticate(form.username.data, form.password.data)
+
+                if not login_user(user, remember=form.remember_me.data):
+                    flash("Please activate your account", "danger")
+
+                return redirect(url_for("home.index"))
+
+            except AuthenticationError:
+                flash("Wrong username or password.", "danger")
+
+        return render_template("auth/login.html", form=form)
+
+class Logout(MethodView):
+    decorators = [login_required]
+
+    def get(self):
+        logout_user()
+        flash("Logged out", "success")
+
+        return redirect(url_for("home.index"))
+
+
+register_view(auth, routes=['/register'], view_func=Register.as_view('register'))
+register_view(auth, routes=['/login'], view_func=Login.as_view('login'))
+register_view(auth, routes=['/logout'], view_func=Logout.as_view('logout'))
+
+"""
 @auth.route('/register', methods=['GET', 'POST'])
 def register():
 
@@ -79,4 +146,6 @@ def logout():
 def update_profile(user_id):
     
     return render_template('auth/update_profile.html')
+
+"""
 

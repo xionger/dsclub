@@ -11,6 +11,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from app import db, login_manager
 
 from app.utils.database import CRUDMixin, make_comparable
+from app.utils.exceptions import AuthenticationError
 
 """
 groups_users = db.Table(
@@ -165,7 +166,7 @@ class User(db.Model, UserMixin, CRUDMixin):
 	@property
 	def url(self):
 		#Returns the url for the user.
-		return url_for("user.profile", username=self.username)
+		return url_for("home.profile", username=self.username)
 
 	@property
 	def days_registered(self):
@@ -186,6 +187,39 @@ class User(db.Model, UserMixin, CRUDMixin):
 		#Required for cache.memoize() to work across requests.
 		
 		return "<{} {}>".format(self.__class__.__name__, self.username)
+
+	@classmethod
+	def authenticate(cls, login, password):
+
+		#user = cls.query.filter(db.or_(User.username == login, User.email == login)).first()
+		user = cls.query.filter(User.username == login).first()
+
+		if user is not None:
+			if user.check_password(password):
+				# reset them after a successful login attempt
+				user.login_attempts = 0
+				user.save()
+				return user
+
+			# user exists, wrong password
+			# never had a bad login before
+			if user.login_attempts is None:
+				user.login_attempts = 1
+			else:
+				user.login_attempts += 1
+
+			user.last_failed_login = time_utcnow()
+			user.save()
+
+		# protection against account enumeration timing attacks
+		check_password_hash("dummy password", password)
+
+		raise AuthenticationError
+
+#set up user_loader
+@login_manager.user_loader
+def load_user(user_id):
+	return User.query.get(int(user_id))
 
 """
 @make_comparable

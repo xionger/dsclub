@@ -1,4 +1,5 @@
 from flask import render_template, flash, request
+from flask import current_app as app
 from flask.views import MethodView
 from flask_login import current_user, login_required
 

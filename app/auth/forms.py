@@ -1,8 +1,10 @@
+from datetime import datetime
 from flask_wtf import FlaskForm
 from wtforms import PasswordField, StringField, SubmitField, ValidationError, BooleanField, HiddenField
 from wtforms.validators import DataRequired, InputRequired, Email, EqualTo, regexp, ValidationError
 
 from app.models import User
+from .. import db
 
 USERNAME_RE = r'^[\w.+]+$'
 is_valid_username = regexp(USERNAME_RE, message="You can only use letters or numbers.")
@@ -43,13 +45,16 @@ class RegistrationForm(FlaskForm):
                 min=USERNAME_MIN_LENGTH, max=USERNAME_MAX_LENGTH)
             )
 
+
     def save(self):
+        #with app.app_context():
         user = User(username=self.username.data.lower(), 
             email=self.email.data.lower(),
             password=self.password.data,
-            date_joined=time_utcnow())
+            date_joined=datetime.utcnow())
 
         return user.save()
+
 
 class LoginForm(FlaskForm):
 
