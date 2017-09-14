@@ -332,6 +332,25 @@ class Forum(db.Model, CRUDMixin):
 		"""
 		return "<{} {}>".format(self.__class__.__name__, self.id)
 
+	@classmethod
+	def get_forum(cls, forum_id):
+
+		forum = Forum.query.filter(Forum.id == forum_id).first_or_404()
+		#forumsread = None
+
+		return forum
+
+	@classmethod
+	def get_topics(cls, forum_id, page=1, per_page=20):
+
+		topics = Topic.query.filter_by(forum_id=forum_id).\
+		order_by(Topic.important.desc(), Topic.last_updated.desc()).\
+		paginate(page, per_page, True)
+
+		topics.items = [(topic, None) for topic in topics.items]
+
+		return topics
+
 @make_comparable
 class Category(db.Model, CRUDMixin):
 	__tablename__ = "categories"
@@ -360,6 +379,7 @@ class Topic(db.Model, CRUDMixin):
 	date_created = db.Column(db.DateTime, nullable=False)
 	last_updated = db.Column(db.DateTime, nullable=False)
 	locked = db.Column(db.Boolean, default=False, nullable=False)
+	important = db.Column(db.Boolean, default=False, nullable=False)
 	featured = db.Column(db.Boolean, default=False, nullable=False)
 
 	views_count = db.Column(db.Integer, default=0, nullable=False)
@@ -482,6 +502,7 @@ class Brainstorm(db.Model, CRUDMixin):
 	date_created = db.Column(db.DateTime, nullable=False)
 	last_updated = db.Column(db.DateTime, nullable=False)
 	locked = db.Column(db.Boolean, default=False, nullable=False)
+	important = db.Column(db.Boolean, default=False, nullable=False)
 	featured = db.Column(db.Boolean, default=False, nullable=False)
 
 	views_count = db.Column(db.Integer, default=0, nullable=False)

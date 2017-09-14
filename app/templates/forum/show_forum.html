@@ -1,9 +1,12 @@
 {% extends "forum_base.html" %}
 
 {% block title %}
-{{ title }}
+{{ forum.title }}
 {% endblock %}
 
 {% block forum %}
-<h1>{{ title }}</h1>
+<a href="{{ url_for('forum.new_topic', forum_id=forum.id) }}" class="btn btn-primary">
+ <span class="fa fa-pencil fa-fw"></span> New Topic
+</a>
+<h1>{{ forum.title }}</h1>
 {% endblock %}
