@@ -2,7 +2,17 @@ from flask_wtf import FlaskForm
 from wtforms import TextAreaField, StringField, SelectMultipleField, BooleanField, SubmitField
 from wtforms.validators import DataRequired, Optional, Length
 
-from app.models import Topic, Post, Forum, User
+from app.models import Topic, Post, Forum, User, Report
+
+class QuickreplyForm(FlaskForm):
+	content = TextAreaField("Quick reply", 
+		validators=[DataRequired("You cannot post a reply without content.")])
+
+	submit = SubmitField("Reply")
+
+	def save(self, user, topic):
+		post = Post(content=self.content.data)
+		return post.save(user=user, topic=topic)
 
 class ReplyForm(FlaskForm):
 	content = TextAreaField('Content', 
@@ -41,4 +51,14 @@ class NewTopicForm(ReplyForm):
 			user.track_topic(topic)
 
 		return topic.save(user=user, forum=forum, post=post)
+
+class ReportForm(FlaskForm):
+	reason = TextAreaField("Reason", 
+		validators=[DataRequired("What is the reason for reporting this post?")])
+
+	submit = SubmitField("Report post")
+
+	def save(self, user, post):
+		report = Report(reason=self.reason.data)
+		return report.save(post=post, user=user)
 

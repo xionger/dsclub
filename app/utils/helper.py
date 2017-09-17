@@ -37,3 +37,12 @@ def register_view(ds_app, routes, view_func, *args, **kwargs):
 def redirect_or_next(endpoint, **kwargs):
 
     return redirect(request.args.get('next') or endpoint, **kwargs)
+
+def real(obj):
+    """
+    Unwraps a werkzeug.local.LocalProxy object if given one, else returns the object
+    """
+    if isinstance(obj, LocalProxy):
+        return obj._get_current_object()
+        
+    return obj

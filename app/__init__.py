@@ -4,6 +4,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
 from flask_migrate import Migrate
 from flask_bootstrap import Bootstrap
+from flask_wtf.csrf import CSRFProtect
 
 from config import app_config
 
@@ -12,6 +13,8 @@ from config import app_config
 db = SQLAlchemy()
 
 login_manager = LoginManager()
+
+csrf = CSRFProtect()
 
 #Create the app
 def create_app(config_name):
@@ -25,6 +28,8 @@ def create_app(config_name):
 	#db.app = app
 
 	db.init_app(app)
+
+	csrf.init_app(app)
 
 	#scheduler = APScheduler()
 	#scheduler.init_app(app)

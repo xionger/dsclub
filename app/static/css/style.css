@@ -86,12 +86,12 @@ p.copyright {
 
 .intro-message > h1 {
     margin: 0;
-    text-shadow: 2px 2px 3px rgba(0,0,0,0.6);
+    text-shadow: 2px 2px 3px rgba(0,0,0,0.9);
     font-size: 5em;
 }
 
 .intro-message > h3 {
-    text-shadow: 2px 2px 3px rgba(0,0,0,0.6);
+    text-shadow: 2px 2px 3px rgba(0,0,0,0.9);
 }
 
 .lead {
@@ -108,4 +108,63 @@ p.copyright {
   height: auto !important;
   height: 100%;
   margin: 0 auto -4em;
+}
+
+
+.editor {
+    color: black;
+}
+
+
+.forum-layout {
+    padding-top: 20px;
+}
+
+.container {
+    width: 750px;
+}
+
+.container {
+    margin-right: auto;
+    margin-left: auto;
+    padding-left: 15px;
+    padding-right: 15px;
+}
+
+.post-row {
+    background: #e8ecf1;
+    margin-top: 0;
+    margin-bottom: 0;
+    padding-top: 0;
+    padding-bottom: 0;
+}
+
+.row {
+    margin-left: -15px;
+    margin-right: -15px;
+}
+
+
+
+
+
+
+.module-box {
+    border: 1px solid #e0e0e0;
+    border-radius: 3px;
+    margin-bottom: 10px;
+    background: #fff;
+}
+
+.module-body {
+    padding: 15px;
+}
+
+.text-slight {
+    font-size: 14px;
+    color: #ccc;
+}
+
+.vertical_section {
+    margin: 6px 0px;
 }

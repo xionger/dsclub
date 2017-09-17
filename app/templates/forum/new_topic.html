@@ -6,7 +6,7 @@
 
 {% block forum %}
 
-{% from theme("macros.html") import render_field, render_submit_field, render_quickreply %}
+{% from "macros.html" import render_field, render_submit_field, render_quickreply %}
 
     <form class="form-horizontal" role="form" method="post">
         {{ form.hidden_tag() }}
@@ -25,7 +25,7 @@
                         <div class="col-md-12 col-sm-12 col-xs-12">
                             <div class="editor-box">
                                 <div class="editor">
-                                    {{ render_quickreply(form.content, div_class="new-message", rows=7, cols=75, placeholder="", **{'data-provide': 'markdown', 'data-autofocus': 'false', 'class': 'flaskbb-editor'}) }}
+                                    {{ render_quickreply(form.content, rows=7, cols=75, div_class="new-message", placeholder="", **{'data-provide': 'markdown', 'data-autofocus': 'false', 'class': 'editor'}) }}
                                 </div>
                                 <div class="editor-submit">
                                     {{ render_submit_field(form.submit, input_class="btn btn-success pull-right") }}
@@ -36,6 +36,7 @@
                 </div>
             </div>
         </div>
+        {% include "editor_helper.html" %}
 	</form>
 
 {% endblock %}

@@ -1,0 +1,175 @@
+{% extends "forum_base.html" %}
+
+{% block title %}
+<h2>{{ topic.title }}</h2>h2>
+{% endblock %}
+
+{% block forum %}
+
+<div class="forum-layout">
+	<div class="container">
+		<div class="topic-view">
+		    <div class="panel topic-panel">
+		        <div class="panel-heading topic-head">
+		            <a href="{{ topic.url }}">{{ topic.title }}</a>
+		        </div>
+		        <div class="panel-body topic-body">
+		            {% for post, user in posts.items %}
+		            <div id="{{ post.id }}" class="row post-row clearfix">
+
+		                <div class="author col-md-2 col-sm-3 col-xs-12">
+		                    <!-- Registered User -->
+		                    {% if post.user_id %}
+		                    <div class="author-name"><h4><a href="{{ user.url }}">{{ user.username }}</a></h4></div>
+
+		                    <div class="author-title">
+		                    	<h5>
+		                    	{% if user.is_admin %}
+		                    		Administrator
+		                    	{% elif user.is_fellow %}
+		                    		Fellow
+		                    	{% elif user.is_member %}
+		                    		Member
+		                    	{% endif %}
+		                    	</h5>
+		                    </div>
+
+		                    {% if user.avatar %}
+		                        <div class="author-avatar"><img src="{{ user.avatar }}" alt="avatar"></div>
+		                    {% endif %}
+
+		                    <div class="author-registered">Joined: {{ user.date_joined }}</div>
+		                    <div class="author-posts">Posts: {{ user.post_count }}</div>
+
+		                    {% else %}
+		                    <!-- user deleted or guest -->
+		                    <div class="author-name"><h4>{{ post.username }}</h4></div>
+		                    <div class="author-title"><h5>Guest</h5></div>
+		                    {% endif %}
+
+		                </div>
+
+		                <div class="post-box col-md-10 col-sm-9 col-xs-12">
+
+		                    <div class="post-meta clearfix">
+		                        <div class="pull-left">
+		                            <!-- Creation date / Date modified -->
+		                            <a href="{{ post.url }}">
+		                                {{ post.date_created }}
+		                            </a>
+		                            {% if post.user_id and post.date_modified %}
+		                            <small>
+		                                (Last modified: {{ post.date_modified }} by
+		                                <a href="{{ url_for('user.profile', username=post.modified_by) }}">{{ post.modified_by }}</a>.)
+		                            </small>
+		                            {% endif %}
+		                        </div>
+
+		                        <!-- Post number -->
+		                        <div class="pull-right">
+		                            <strong>#1</strong>
+		                        </div>
+		                    </div>
+
+		                    <div class="post-content clearfix" id="pid{{ post.id }}">
+	
+		                        {{ post.content }}
+
+		                    </div>
+
+	                        <div class="post-footer clearfix">
+
+	                            <!-- Report/Edit/Delete/Quote Post-->
+	                            <div class="post-menu pull-right">
+
+	                            {% if current_user %}
+	                            <!-- Quick quote -->
+	                                <a href="#" class="btn btn-icon icon-reply quote-btn" data-post-id="{{ post.id }}" data-toggle="tooltip" data-placement="top" title="Quote this post"></a>
+	                            <!-- Full quote/reply -->
+	                                <a href="{{ url_for('forum.reply_post', topic_id=topic.id, post_id=post.id) }}" class="btn btn-icon icon-replyall" data-toggle="tooltip" data-placement="top" title="Full Reply"></a>
+	                            {% endif %}
+
+	                            {% if current_user %}
+	                            <!-- Edit Post -->
+	                            <a href="{{ url_for('forum.edit_post', post_id=post.id) }}" class="btn btn-icon icon-edit" data-toggle="tooltip" data-placement="top" title="Edit this post"></a>
+	                            {% endif %}
+	                            {% if topic.first_post == post %}
+	                                {% if current_user %}
+	                                <form class="inline-form" method="post" action="{{ url_for('forum.delete_topic', topic_id=topic.id, slug=topic.slug) }}">
+	                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+	                                    <button class="btn btn-icon icon-delete" name="confirmDialog" data-toggle="tooltip" data-placement="top" title="Delete this topic"></button>
+	                                </form>
+	                                {% endif %}
+	                            {% else %}
+	                                {% if current_user %}
+	                            <!-- Delete Post -->
+	                                <form class="inline-form" method="post" action="{{ url_for('forum.delete_post', post_id=post.id) }}">
+	                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+	                                    <button  class="btn btn-icon icon-delete" name="confirmDialog" data-toggle="tooltip" data-placement="top" title="Delete this post"></button>
+	                                </form>
+	                                {% endif %}
+
+	                            {% endif %}
+
+	                            {% if current_user.is_authenticated %}
+	                            <!-- Report post -->
+	                                <a href="{{ url_for('forum.report_post', post_id=post.id) }}" onclick="window.open(this.href, 'wio_window','width=500,height=500'); return false;" class="btn btn-icon icon-report" data-toggle="tooltip" data-placement="top" title="Report this post"></a>
+	                            {% endif %}
+
+	                            </div> <!-- end post-menu -->
+	                        </div> <!-- end footer -->
+
+		                </div>
+		            </div>
+		            {% endfor %}
+
+		        </div> <!-- end topic-body -->
+		</div> <!-- end topic-panel -->
+			
+		</div>
+	</div>
+
+</div>
+
+
+<div class="row">
+	<div class="col-md-9 thread-page">
+		<div class="module-box">
+			<div class="module-body">
+				<div class="cotent" id="thread-content">
+					<div class="thread-title vertical-section">
+						<span class="h2 title-text">{{ topic.title }}</span>
+					</div>
+					<div class="user-info vertical-section">
+						<div class="avatar-inner">
+							<a class="avatar" href="/">AVATAR</a>
+						</div>
+						<div class="avatar-info">
+							<a href="/">
+								<span class="text-slight">author</span>
+							</a>
+							<span class="pull-right text-slight">{{topic.date_created}}</span>
+						</div>
+					</div>
+					<div class="vertical-section">
+						<div class="description">contents of the topic</div>
+					</div>
+					<div class="vertical-section">
+						<div class="row">
+							<div class="form-inline" style="text-align: right">
+								5 replies
+								<span>.</span>
+								<a class="thred-replay-link" href="/">Reply</a>
+								<span>.</span>
+								<a class="thred-report-link" href="/">Report</a>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		
+	</div>
+</div>
+
+{% endblock %}

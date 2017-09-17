@@ -1,5 +1,4 @@
-import datetime
-from datetime import timedelta
+from datetime import datetime, timedelta
 from pytz import UTC
 
 from flask import url_for, abort
@@ -81,7 +80,7 @@ class User(db.Model, UserMixin, CRUDMixin):
 	occupation = db.Column(db.String(64))
 	organization = db.Column(db.String(64))
 	location = db.Column(db.String(128))
-	avatar = db.Column(db.String(128))
+	avatar = db.Column(db.String(255))
 	score = db.Column(db.Integer, default=0)
 	profile_visible = db.Column(db.Integer, default=1)
 
@@ -171,7 +170,7 @@ class User(db.Model, UserMixin, CRUDMixin):
 	@property
 	def days_registered(self):
 		#Returns the amount of days the user is registered.
-		days_registered = (time_utcnow() - self.date_joined).days
+		days_registered = (datetime.now() - self.date_joined).days
 		if not days_registered:
 			return 1
 		return days_registered
@@ -208,7 +207,7 @@ class User(db.Model, UserMixin, CRUDMixin):
 			else:
 				user.login_attempts += 1
 
-			user.last_failed_login = time_utcnow()
+			user.last_failed_login = datetime.now()
 			user.save()
 
 		# protection against account enumeration timing attacks
@@ -399,6 +398,115 @@ class Topic(db.Model, CRUDMixin):
 	posts = db.relationship("Post", backref="topic", lazy="dynamic", 
 		primaryjoin="Post.topic_id == Topic.id", cascade="all, delete-orphan", post_update=True)
 
+	# Properties
+	@property
+	def url(self):
+		"""Returns the slugified url for the topic."""
+		return url_for("forum.view_topic", topic_id=self.id)
+
+	# Methods
+	def __init__(self, title=None, user=None):
+		"""Creates a topic object with some initial values.
+		:param title: The title of the topic.
+		:param user: The user of the post.
+		"""
+		if title:
+			self.title = title
+
+		if user:
+			# setting the user here, even with setting the id, breaks the bulk insert
+			# stuff as they use the session.bulk_save_objects which does not trigger
+			# relationships
+			self.user_id = user.id
+			self.username = user.username
+
+			self.date_created = self.last_updated = datetime.now()
+
+	def __repr__(self):
+		"""Set to a unique key specific to the object in the database.
+		Required for cache.memoize() to work across requests.
+		"""
+		return "<{} {}>".format(self.__class__.__name__, self.id)
+
+	def recalculate(self):
+		"""Recalculates the post count in the topic."""
+		post_count = Post.query.filter_by(topic_id=self.id).count()
+		self.post_count = post_count
+		self.save()
+		return self
+
+	def save(self, user=None, forum=None, post=None):
+		"""Saves a topic and returns the topic object. If no parameters are
+		given, it will only update the topic.
+		:param user: The user who has created the topic
+		:param forum: The forum where the topic is stored
+		:param post: The post object which is connected to the topic
+		"""
+
+		# Updates the topic
+		if self.id:
+			db.session.add(self)
+			db.session.commit()
+			return self
+
+		# Set the forum and user id
+		self.forum = forum
+		self.user = user
+		self.username = user.username
+
+		# Set the last_updated time. Needed for the readstracker
+		self.date_created = self.last_updated = datetime.now()
+
+		# Insert and commit the topic
+		db.session.add(self)
+		db.session.commit()
+
+		# Create the topic post
+		post.save(user, self)
+
+		# Update the first and last post id
+		self.last_post = self.first_post = post
+
+		# Update the topic count
+		forum.topic_count += 1
+		db.session.commit()
+		return self
+
+	def delete(self, users=None):
+		"""Deletes a topic with the corresponding posts. If a list with
+		user objects is passed it will also update their post counts
+		:param users: A list with user objects
+		"""
+		forum = self.forum
+		db.session.delete(self)
+		self._fix_user_post_counts(users or self.involved_users().all())
+		self._fix_post_counts(forum)
+		db.session.commit()
+		return self
+
+	def _remove_topic_from_forum(self):
+		# Grab the second last topic in the forum + parents/childs
+		topics = Topic.query.filter(
+			Topic.forum_id == self.forum_id).order_by(Topic.last_post_id.desc()).limit(2).offset(0).all()
+
+		# do we want to replace the topic with the last post in the forum?
+		if len(topics) > 1 and topics[0] == self:
+			# Now the second last post will be the last post
+			self.forum.last_post = topics[1].last_post
+			self.forum.last_post_title = topics[1].title
+			self.forum.last_post_user = topics[1].user
+			self.forum.last_post_username = topics[1].username
+			self.forum.last_post_created = topics[1].last_updated
+		else:
+			self.forum.last_post = None
+			self.forum.last_post_title = None
+			self.forum.last_post_user = None
+			self.forum.last_post_username = None
+			self.forum.last_post_created = None
+
+		#TopicsRead.query.filter_by(topic_id=self.id).delete()
+
+
 @make_comparable
 class Post(db.Model, CRUDMixin):
 	__tablename__ = "posts"
@@ -410,7 +518,6 @@ class Post(db.Model, CRUDMixin):
 	user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=True)
 	#username = db.Column(db.String(200), nullable=False)
 	content = db.Column(db.Text, nullable=False)
-	attached = db.Column(db.String(255), nullable=True)
 	
 	date_created = db.Column(db.DateTime, nullable=False)
 	date_modified = db.Column(db.DateTime, nullable=True)
@@ -420,12 +527,155 @@ class Post(db.Model, CRUDMixin):
 	parent_id = db.Column(db.Integer, db.ForeignKey('posts.id'))
 	parent = db.relationship("Post", remote_side=[id])
 
+	# One-to-many
+	attachments = db.relationship("Attachment", backref="post", lazy="dynamic", 
+		primaryjoin="Attachment.post_id == Post.id", cascade="all, delete-orphan", post_update=True)
+
+
+	# Properties
+	@property
+	def url(self):
+		"""Returns the url for the post."""
+		return url_for("forum.view_post", post_id=self.id)
+
+	# Methods
+	def __init__(self, content=None, user=None, topic=None):
+		"""Creates a post object with some initial values.
+		:param content: The content of the post.
+		:param user: The user of the post.
+		:param topic: Can either be the topic_id or the topic object.
+		"""
+		if content:
+			self.content = content
+
+		if user:
+			# setting user here -- even with setting the user id explicitly
+			# breaks the bulk insert for some reason
+			self.user_id = user.id
+			self.username = user.username
+
+		if topic:
+			self.topic_id = topic if isinstance(topic, int) else topic.id
+
+			self.date_created = datetime.now()
 
 	def __repr__(self):
 		"""Set to a unique key specific to the object in the database.
 		Required for cache.memoize() to work across requests.
 		"""
 		return "<{} {}>".format(self.__class__.__name__, self.id)
+
+	def save(self, user=None, topic=None):
+		"""Saves a new post. If no parameters are passed we assume that
+		you will just update an existing post. It returns the object after the
+		operation was successful.
+		:param user: The user who has created the post
+		:param topic: The topic in which the post was created
+		"""
+		# update/edit the post
+		if self.id:
+			db.session.add(self)
+			db.session.commit()
+			return self
+
+		# Adding a new post
+		if user and topic:
+			created = datetime.now()
+			self.user = user
+			self.username = user.username
+			self.topic = topic
+			self.date_created = created
+
+			#if not topic.hidden:
+			topic.last_updated = created
+			topic.last_post = self
+
+			# Update the last post info for the forum
+			topic.forum.last_post = self
+			topic.forum.last_post_user = self.user
+			topic.forum.last_post_title = topic.title
+			topic.forum.last_post_username = user.username
+			topic.forum.last_post_created = created
+
+			# Update the post counts
+			user.post_count += 1
+			topic.post_count += 1
+			topic.forum.post_count += 1
+
+			# And commit it!
+			db.session.add(topic)
+			db.session.commit()
+			return self
+
+	def delete(self):
+		"""Deletes a post and returns self."""
+		# This will delete the whole topic
+		if self.topic.first_post == self:
+			self.topic.delete()
+			return self
+
+		self._deal_with_last_post()
+		self._update_counts()
+
+		db.session.delete(self)
+		db.session.commit()
+		return self
+
+@make_comparable
+class Attachement(db.Model, CRUDMixin):
+	__tablename__ = "attachments"
+
+	id = db.Column(db.Integer, primary_key=True)
+	post_id = db.Column(db.Integer, db.ForeignKey("posts.id", use_alter=True, 
+		name="ds_attach_post_id", ondelete="CASCADE"), nullable=True)
+	name = db.Column(db.String(255), nullable=False)
+	tag = db.Column(db.String(255), nullable=False)
+
+@make_comparable
+class Report(db.Model, CRUDMixin):
+	__tablename__ = "reports"
+
+	# TODO: Store in addition to the info below topic title and username
+	# as well. So that in case a user or post gets deleted, we can
+	# still view the report
+
+	id = db.Column(db.Integer, primary_key=True)
+	reporter_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=True)
+	reported = db.Column(db.DateTime, default=datetime.now(), nullable=False)
+	post_id = db.Column(db.Integer, db.ForeignKey("posts.id"), nullable=True)
+	zapped = db.Column(db.DateTime, default=datetime.now(), nullable=True)
+	zapped_by = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=True)
+	reason = db.Column(db.Text, nullable=True)
+
+	post = db.relationship("Post", 
+		lazy="joined", backref=db.backref('report', cascade='all, delete-orphan'))
+
+	reporter = db.relationship("User", lazy="joined", foreign_keys=[reporter_id])
+	zapper = db.relationship("User", lazy="joined", foreign_keys=[zapped_by])
+
+	def __repr__(self):
+		return "<{} {}>".format(self.__class__.__name__, self.id)
+
+	def save(self, post=None, user=None):
+		"""Saves a report.
+		:param post: The post that should be reported
+		:param user: The user who has reported the post
+		:param reason: The reason why the user has reported the post
+		"""
+
+		if self.id:
+			db.session.add(self)
+			db.session.commit()
+			return self
+
+		if post and user:
+			self.reporter = user
+			self.reported = time_utcnow()
+			self.post = post
+
+		db.session.add(self)
+		db.session.commit()
+		return self
 
 @make_comparable
 class Project(db.Model, CRUDMixin):
@@ -502,6 +752,7 @@ class Brainstorm(db.Model, CRUDMixin):
 	date_created = db.Column(db.DateTime, nullable=False)
 	last_updated = db.Column(db.DateTime, nullable=False)
 	locked = db.Column(db.Boolean, default=False, nullable=False)
+
 	important = db.Column(db.Boolean, default=False, nullable=False)
 	featured = db.Column(db.Boolean, default=False, nullable=False)
 
@@ -536,7 +787,7 @@ class Discussion(db.Model, CRUDMixin):
 	user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=True)
 	#username = db.Column(db.String(200), nullable=False)
 	content = db.Column(db.Text, nullable=False)
-	attached = db.Column(db.String(255), nullable=True)
+	#attached = db.Column(db.String(255), nullable=True)
 	
 	date_created = db.Column(db.DateTime, nullable=False)
 	date_modified = db.Column(db.DateTime, nullable=True)
@@ -545,6 +796,10 @@ class Discussion(db.Model, CRUDMixin):
 
 	parent_id = db.Column(db.Integer, db.ForeignKey('discussions.id'))
 	parent = db.relationship("Discussion", remote_side=[id])
+
+	# One-to-many
+	files = db.relationship("File", backref="discussion", lazy="dynamic", 
+		primaryjoin="File.discussion_id == Discussion.id", cascade="all, delete-orphan", post_update=True)
 
 	"""
 	@property
@@ -578,6 +833,16 @@ class Discussion(db.Model, CRUDMixin):
 		Required for cache.memoize() to work across requests.
 		"""
 		return "<{} {}>".format(self.__class__.__name__, self.id)
+
+@make_comparable
+class File(db.Model, CRUDMixin):
+	__tablename__ = "files"
+
+	id = db.Column(db.Integer, primary_key=True)
+	discussion_id = db.Column(db.Integer, db.ForeignKey("discussions.id", use_alter=True, 
+		name="ds_file_discussion_id", ondelete="CASCADE"), nullable=True)
+	name = db.Column(db.String(255), nullable=False)
+	tag = db.Column(db.String(255), nullable=False)
 
 class Conversation(db.Model, CRUDMixin):
 	__tablename__ = "conversations"
