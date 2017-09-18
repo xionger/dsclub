@@ -346,7 +346,7 @@ class Forum(db.Model, CRUDMixin):
 		order_by(Topic.important.desc(), Topic.last_updated.desc()).\
 		paginate(page, per_page, True)
 
-		topics.items = [(topic, None) for topic in topics.items]
+		topics.items = [(topic, Post.query.filter_by(id=topic.first_post_id).first_or_404()) for topic in topics.items]
 
 		return topics
 
@@ -614,15 +614,31 @@ class Post(db.Model, CRUDMixin):
 			self.topic.delete()
 			return self
 
-		self._deal_with_last_post()
+		#self._deal_with_last_post()
 		self._update_counts()
 
 		db.session.delete(self)
 		db.session.commit()
 		return self
 
+	def _update_counts(self):
+
+		self.user.post_count = Post.query.filter(
+			Post.id == self.id, 
+			Post.user_id == self.user.id,
+			Topic.id == Post.topic_id).count()
+
+		self.topic.post_count = Post.query.filter(
+			Post.id == self.id, 
+			Post.topic_id == self.topic.id).count()
+
+		self.topic.forum.post_count = Post.query.filter(
+			Post.id == self.id, 
+			Post.topic_id == Topic.id, 
+			Topic.forum_id == self.topic.forum.id).count()
+
 @make_comparable
-class Attachement(db.Model, CRUDMixin):
+class Attachment(db.Model, CRUDMixin):
 	__tablename__ = "attachments"
 
 	id = db.Column(db.Integer, primary_key=True)

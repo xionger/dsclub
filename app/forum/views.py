@@ -1,4 +1,5 @@
 import math
+from datetime import datetime
 from flask import flash, redirect, render_template, url_for, request
 from flask.views import MethodView
 from flask_login import current_user, login_required, login_user, logout_user
@@ -14,7 +15,7 @@ from app.utils.setting import app_settings
 
 class ViewForum(MethodView):
 
-	def get(self, forum_id, slug=None):
+	def get(self, forum_id):
 		page = request.args.get('page', 1, type=int)
 
 		#forum_instance = Forum.get_forum(forum_id=forum_id)
@@ -192,7 +193,7 @@ class EditPost(MethodView):
 
 			else:
 				form.populate_obj(post)
-				post.date_modified = time_utcnow()
+				post.date_modified = datetime.now()
 				post.modified_by = real(current_user).username
 				post.save()
 				return redirect(url_for('forum.view_post', post_id=post.id))
@@ -215,16 +216,16 @@ class DeletePost(MethodView):
 	def post(self, post_id):
 		post = Post.query.filter_by(id=post_id).first_or_404()
 		first_post = post.first_post
-		topic_url = post.topic.url
-		forum_url = post.topic.forum.url
+		topicUrl = post.topic.url
+		forumUrl = post.topic.forum.url
 
 		post.delete()
 
 		# If the post was the first post in the topic, redirect to the forums
 		if first_post:
-			return redirect(forum_url)
+			return redirect(forumUrl)
 
-		return redirect(topic_url)
+		return redirect(topicUrl)
 
 class ReportView(MethodView):
 	decorators = [login_required]

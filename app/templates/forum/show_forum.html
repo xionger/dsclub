@@ -5,8 +5,57 @@
 {% endblock %}
 
 {% block forum %}
-<a href="{{ url_for('forum.new_topic', forum_id=forum.id) }}" class="btn btn-primary">
- <span class="fa fa-pencil fa-fw"></span> New Topic
-</a>
-<h1>{{ forum.title }}</h1>
+
+
+<div class="container">
+	<div class="topic-view">
+		<div class="col-md-9 thread-page">
+
+			<div class="panel forum-panel">
+			    <div class="panel-heading forum-head">
+			        <div class="pull-left col-md-6 col-sm-6 col-xs-6">
+			    		<a href="{{ forum.url }}" class="btn btn-primary">{{ forum.title }}</a>
+			    	</div>
+			    	<div class="pull-right col-md-6 col-sm-6 col-xs-6">
+			    		<a href="{{ url_for('forum.new_topic', forum_id=forum.id) }}">
+			            <span class="glyphicon glyphicon-pencil"></span>New Topic
+			        </a>
+			    	</div>
+			    </div>
+
+			    <div class="panel-body forum-body">
+
+			        {% for topic, first_post in topics.items %}
+			        <div class="post-row clearfix post-block">
+			        <div class="row post-box">
+			            <h4>
+			            	<span class="col-md-8 col-sm-8 col-xs-12"><a href="{{ topic.url }}">{{ topic.title }}</a></span>
+			            	<small>
+				            	<span class="col-md-2 col-sm-2 col-xs-6">by
+				                {% if topic.user_id %}
+				                 <a href="{{ topic.user.url }}"> {{ topic.user.username }} </a>
+				                {% else %}
+				                {{ topic.username }}
+				                {% endif %}
+				                </span>
+				                <span class="col-md-2 col-sm-2 col-xs-6 glyphicon glyphicon-comment"> {{ topic.post_count}}</span>
+			                </small>
+			            </h4>
+			        </div>
+
+			        <div class="row post-content">
+			            <div>{{ first_post.content }}</div>
+
+			        </div>
+			        </div>
+
+			        {% endfor %}
+			    </div><!-- end panel-body -->
+			</div>
+		</div>
+	</div>
+</div>
+
+
+
 {% endblock %}

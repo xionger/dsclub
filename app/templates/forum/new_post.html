@@ -1,1 +1,61 @@
-new post page
+{% extends "forum_base.html" %}
+
+{% block title %}
+<h2>{{ topic.title }}</h2>h2>
+{% endblock %}
+
+{% block forum %}
+
+{% from "macros.html" import render_quickreply, render_submit_field, render_field %}
+
+<div class="forum-layout">
+	<div class="container">
+		<div class="topic-view">
+		    <div class="panel topic-panel">
+		        <div class="panel-heading topic-head">
+		            <a href="{{ topic.url }}">{{ topic.title }}</a>
+		        </div>
+		        <div class="panel-body topic-body">
+		           
+					<form class="form-horizontal" role="form" method="post">
+				        {{ form.hidden_tag() }}
+				        <div class="panel page-panel">
+				            <div class="panel-heading page-head">
+				                New Post
+				            </div>
+
+				            <div class="panel-body page-body">
+				                <div class="col-md-12 col-sm-12 col-xs-12">
+
+				                    {% if form.title %}
+				                        {{ render_field(form.title, div_class="col-md-12 col-sm-12 col-xs-12") }}
+				                    {% endif %}
+
+				                    <div class="form-group">
+				                        <div class="col-md-12 col-sm-12 col-xs-12">
+				                            <div class="editor-box">
+				                                <div class="editor">
+				                                    {{ render_quickreply(form.content, div_class="new-message", rows=7, cols=75, placeholder="", **{'data-provide': 'markdown', 'data-autofocus': 'false', 'class': 'flaskbb-editor'}) }}
+				                                </div>
+				                                <div class="editor-submit">
+				                                    {{ render_submit_field(form.submit, input_class="btn btn-success pull-right") }}
+				                                </div>
+				                            </div>
+				                        </div>
+				                    </div>
+				                </div>
+				            </div>
+				        </div>
+				        
+					</form>
+
+		        </div> <!-- end topic-body -->
+		</div> <!-- end topic-panel -->
+			
+		</div>
+	</div>
+
+</div>
+
+
+{% endblock %}
